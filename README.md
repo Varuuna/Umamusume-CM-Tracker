@@ -22,4 +22,4 @@ npm run build   # type-check + production build
 
 ## Deploy
 
-`.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every push to `main`. In the repo settings, set **Pages → Source** to **GitHub Actions**. The site is served at `/<repo-name>/`; if the repo is named differently, update `base` in `vite.config.ts`.
+`.github/workflows/deploy.yml` builds, tests and publishes to GitHub Pages on every push to `develop` (or manually via "Run workflow"). In the repo settings, set **Pages → Source** to **GitHub Actions**.
