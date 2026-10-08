@@ -497,3 +497,121 @@ td.p3 {
   align-items: center;
   gap: 6px;
 }
+
+/* Teams */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+select {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.team-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+.chip-btn.on {
+  background: var(--surface-2);
+  border-color: var(--text-3);
+  font-weight: 600;
+}
+.team-swatches {
+  display: inline-flex;
+  gap: 2px;
+  flex: none;
+}
+.team-swatches .swatch {
+  width: 8px;
+}
+.team-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: var(--text-2);
+  flex-wrap: wrap;
+}
+.team-select select {
+  min-width: 220px;
+  max-width: 100%;
+  color: var(--text);
+}
+.team-warning {
+  margin: -6px 0 12px;
+}
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+}
+.filter-bar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.filter-bar select {
+  font-weight: 400;
+  max-width: 100%;
+}
+.filter-bar button {
+  margin-left: auto;
+}
+tr.clickable {
+  cursor: pointer;
+}
+tr.clickable:hover td {
+  background: var(--surface-2);
+}
+tr.selected td {
+  background: var(--surface-2);
+}
+tr.selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.member-wins-col {
+  text-align: left;
+}
+th.member-wins-col {
+  text-align: left;
+}
+.member-wins {
+  display: flex;
+  gap: 12px;
+}
+.member-wins > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.race-table .team-col {
+  text-align: left;
+}
+.race-table .team-col select {
+  padding: 2px 6px;
+  font-size: 0.85rem;
+  max-width: 220px;
+}

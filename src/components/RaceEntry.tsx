@@ -1,19 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
 import { seriesVar } from "../model/colors";
-import type { Uma } from "../model/types";
+import type { Team, Uma } from "../model/types";
 import { ordinal } from "../format";
 
 type Props = {
   umas: Uma[];
+  teams: Team[];
   raceNumber: number;
-  onSave: (order: string[]) => void;
+  onSave: (order: string[], teamId: string | undefined) => void;
 };
 
 const KEYS = "123456789";
 
-export function RaceEntry({ umas, raceNumber, onSave }: Props) {
+export function RaceEntry({ umas, teams, raceNumber, onSave }: Props) {
   const active = umas.filter((u) => !u.retired);
+  const activeTeams = teams.filter((t) => !t.retired);
   const [picked, setPicked] = useState<string[]>([]);
+  // Stays selected between saves: lineups are usually run several times in a row.
+  const [teamId, setTeamId] = useState("");
+  const team = activeTeams.find((t) => t.id === teamId);
+
+  // Drop the team selection if it was retired or deleted meanwhile.
+  useEffect(() => {
+    if (teamId && !team) setTeamId("");
+  }, [teamId, team]);
 
   // Drop picks for umas that were retired or deleted meanwhile.
   const activeIds = active.map((u) => u.id).join();
@@ -29,9 +39,9 @@ export function RaceEntry({ umas, raceNumber, onSave }: Props) {
   const clear = useCallback(() => setPicked([]), []);
   const save = useCallback(() => {
     if (picked.length === 0) return;
-    onSave(picked);
+    onSave(picked, team?.id);
     setPicked([]);
-  }, [picked, onSave]);
+  }, [picked, team, onSave]);
 
   // Keyboard: 1-9 pick, Backspace undo, Escape clear, Enter save (ignored while typing in inputs).
   useEffect(() => {
@@ -57,6 +67,7 @@ export function RaceEntry({ umas, raceNumber, onSave }: Props) {
   }, [active, toggle, undo, clear, save]);
 
   const nameOf = (id: string) => umas.find((u) => u.id === id);
+  const unplaced = team && picked.length > 0 ? team.memberIds.filter((id) => !picked.includes(id)) : [];
 
   return (
     <section className="card">
@@ -67,6 +78,26 @@ export function RaceEntry({ umas, raceNumber, onSave }: Props) {
           Enter save · Esc clear
         </span>
       </div>
+
+      <label className="team-select">
+        Team
+        <select
+          value={team?.id ?? ""}
+          onChange={(e) => {
+            setTeamId(e.target.value);
+            // Hand focus back so the 1–9 shortcuts work right away.
+            e.currentTarget.blur();
+          }}
+        >
+          <option value="">No team</option>
+          {activeTeams.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+        {teams.length === 0 && <span className="hint">Create teams in the Teams panel.</span>}
+      </label>
 
       {active.length === 0 ? (
         <div className="empty">Add umas to the roster to start entering races.</div>
@@ -107,6 +138,11 @@ export function RaceEntry({ umas, raceNumber, onSave }: Props) {
           })
         )}
       </div>
+      {unplaced.length > 0 && (
+        <div className="hint team-warning">
+          Not placed yet: {unplaced.map((id) => nameOf(id)?.name).join(", ")}
+        </div>
+      )}
 
       <div className="entry-actions">
         <button className="primary" onClick={save} disabled={picked.length === 0}>

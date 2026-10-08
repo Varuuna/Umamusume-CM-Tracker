@@ -1,28 +1,33 @@
 import { seriesVar } from "../model/colors";
 import { positionIn } from "../model/stats";
-import type { Race, Uma } from "../model/types";
+import type { Race, Team, Uma } from "../model/types";
 
 type Props = {
   umas: Uma[];
-  races: Race[];
+  teams: Team[];
+  /** Races to show, each with its original (global) race number. */
+  rows: { race: Race; n: number }[];
+  total: number;
   onDelete: (id: string) => void;
+  onSetTeam: (raceId: string, teamId: string | null) => void;
 };
 
-export function RaceTable({ umas, races, onDelete }: Props) {
+export function RaceTable({ umas, teams, rows: shown, total, onDelete, onSetTeam }: Props) {
   // Newest first, keeping the original race number.
-  const rows = races.map((r, i) => ({ race: r, n: i + 1 })).reverse();
+  const rows = [...shown].reverse();
 
   return (
     <section className="card">
-      <h2>Races ({races.length})</h2>
-      {races.length === 0 ? (
-        <div className="empty">No races yet.</div>
+      <h2>Races ({shown.length === total ? total : `${shown.length} of ${total}`})</h2>
+      {shown.length === 0 ? (
+        <div className="empty">{total === 0 ? "No races yet." : "No races for this filter."}</div>
       ) : (
         <div className="race-table-scroll">
           <table className="race-table">
             <thead>
               <tr>
                 <th>#</th>
+                <th className="team-col">Team</th>
                 {umas.map((u) => (
                   <th key={u.id} className={`uma-col${u.retired ? " retired" : ""}`}>
                     <span className="name-cell">
@@ -38,6 +43,22 @@ export function RaceTable({ umas, races, onDelete }: Props) {
               {rows.map(({ race, n }) => (
                 <tr key={race.id}>
                   <td>{n}</td>
+                  <td className="team-col">
+                    <select
+                      value={race.teamId ?? ""}
+                      onChange={(e) => onSetTeam(race.id, e.target.value || null)}
+                      aria-label={`Team for race ${n}`}
+                    >
+                      <option value="">—</option>
+                      {teams
+                        .filter((t) => !t.retired || t.id === race.teamId)
+                        .map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                    </select>
+                  </td>
                   {umas.map((u) => {
                     const p = positionIn(race, u.id);
                     return (

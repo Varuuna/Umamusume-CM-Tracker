@@ -9,6 +9,8 @@ Data is kept in the browser's `localStorage` (no backend). Use **Export JSON** f
 - **Roster:** add umas by name (names must be unique). Double-click to rename. **Retire** hides an uma from entry but keeps its results.
 - **Race entry:** click umas in finishing order; anyone not clicked didn't run that race. Keyboard: `1`–`9` pick, `Backspace` undo, `Enter` save, `Esc` clear.
 - **Mistakes:** delete the race from the race table and enter it again.
+- **Teams:** define 3-uma lineups in the **Teams** panel and pick one in race entry (it stays selected between races). Races recorded without a team stay as "No team"; tag them later from the **Team** column in the race table.
+- **Team summary:** per lineup — races, team wins (any member 1st), win %, races with a member in the top 3, best-finisher average, average combined finish and wins per member. Click a team (or use **Show races**) to filter the per-uma stats, charts and race table to that lineup.
 - Stats only count the races each uma actually ran.
 
 ## Development

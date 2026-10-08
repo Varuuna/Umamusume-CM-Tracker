@@ -1,14 +1,18 @@
-import { type AppState, emptyState } from "./types";
+import { type AppState, TEAM_SIZE, emptyState } from "./types";
 
 export const STORAGE_KEY = "cm-tracker:v1";
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 
-/** Validates unknown data (from storage or an imported file). Returns null if invalid. */
+/**
+ * Validates unknown data (from storage or an imported file). Returns null if invalid.
+ * Data saved before teams existed has no `teams` and no race `teamId`; it loads with `teams: []`.
+ */
 export function parseState(data: unknown): AppState | null {
   if (!isObj(data) || data.version !== 1) return null;
   const { umas, races } = data;
-  if (!Array.isArray(umas) || !Array.isArray(races)) return null;
+  const teams = data.teams ?? [];
+  if (!Array.isArray(umas) || !Array.isArray(races) || !Array.isArray(teams)) return null;
 
   const umasOk = umas.every(
     (u) =>
@@ -23,6 +27,22 @@ export function parseState(data: unknown): AppState | null {
   const ids = new Set(umas.map((u: { id: string }) => u.id));
   if (ids.size !== umas.length) return null;
 
+  const teamsOk = teams.every(
+    (t) =>
+      isObj(t) &&
+      typeof t.id === "string" &&
+      typeof t.name === "string" &&
+      typeof t.retired === "boolean" &&
+      Array.isArray(t.memberIds) &&
+      t.memberIds.length === TEAM_SIZE &&
+      t.memberIds.every((id) => typeof id === "string" && ids.has(id)) &&
+      new Set(t.memberIds).size === t.memberIds.length,
+  );
+  if (!teamsOk) return null;
+
+  const teamIds = new Set(teams.map((t: { id: string }) => t.id));
+  if (teamIds.size !== teams.length) return null;
+
   const racesOk = races.every(
     (r) =>
       isObj(r) &&
@@ -31,11 +51,12 @@ export function parseState(data: unknown): AppState | null {
       Array.isArray(r.order) &&
       r.order.length > 0 &&
       r.order.every((id) => typeof id === "string" && ids.has(id)) &&
-      new Set(r.order).size === r.order.length,
+      new Set(r.order).size === r.order.length &&
+      (r.teamId === undefined || (typeof r.teamId === "string" && teamIds.has(r.teamId))),
   );
   if (!racesOk) return null;
 
-  return data as AppState;
+  return { ...data, teams } as AppState;
 }
 
 export function loadState(): AppState {

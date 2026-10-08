@@ -27,7 +27,8 @@ export function RosterPanel({ state, dispatch }: Props) {
     setEditing(null);
   };
 
-  const hasRaces = (id: string) => state.races.some((r) => r.order.includes(id));
+  const inUse = (id: string) =>
+    state.races.some((r) => r.order.includes(id)) || state.teams.some((t) => t.memberIds.includes(id));
 
   return (
     <section className="card">
@@ -78,10 +79,10 @@ export function RosterPanel({ state, dispatch }: Props) {
               <button onClick={() => dispatch({ type: "toggleRetire", id: u.id })}>
                 {u.retired ? "Restore" : "Retire"}
               </button>
-              {!hasRaces(u.id) && (
+              {!inUse(u.id) && (
                 <button
                   className="link"
-                  title="Delete (only possible before it has results)"
+                  title="Delete (only possible before it has results or a team)"
                   onClick={() => dispatch({ type: "deleteUma", id: u.id })}
                   aria-label={`Delete ${u.name}`}
                 >

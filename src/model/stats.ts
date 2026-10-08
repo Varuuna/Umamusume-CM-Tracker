@@ -1,4 +1,4 @@
-import type { Race, Uma } from "./types";
+import type { Race, Team, Uma } from "./types";
 
 export type UmaStats = {
   id: string;
@@ -97,4 +97,77 @@ export function winTrend(umas: Uma[], races: Race[], mode: TrendMode, window = 2
     }
     return point;
   });
+}
+
+export type TeamStats = {
+  id: string;
+  name: string;
+  retired: boolean;
+  memberIds: string[];
+  races: number;
+  /** Races where any member finished 1st. */
+  wins: number;
+  winPct: number | null;
+  /** Races where at least one member finished top 3. */
+  top3: number;
+  top3Pct: number | null;
+  /** Average over races of the best-placed member's position. */
+  bestAvg: number | null;
+  /** Average over races of the mean position of the members who placed. */
+  avgCombined: number | null;
+  /** Wins per member within this team's races, in member order. */
+  memberWins: { umaId: string; wins: number }[];
+};
+
+const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+
+/** Per-team stats over the races tagged with that team. Untagged races are ignored. */
+export function teamStats(teams: Team[], races: Race[]): TeamStats[] {
+  return teams.map((t) => {
+    const own = races.filter((r) => r.teamId === t.id);
+    const memberWins = t.memberIds.map((umaId) => ({ umaId, wins: 0 }));
+    const best: number[] = [];
+    const combined: number[] = [];
+    let wins = 0;
+    let top3 = 0;
+    for (const r of own) {
+      const positions = t.memberIds
+        .map((id) => positionIn(r, id))
+        .filter((p): p is number => p !== null);
+      const winner = memberWins.find((m) => m.umaId === r.order[0]);
+      if (winner) {
+        winner.wins++;
+        wins++;
+      }
+      if (positions.length === 0) continue;
+      const b = Math.min(...positions);
+      if (b <= 3) top3++;
+      best.push(b);
+      combined.push(mean(positions)!);
+    }
+    const n = own.length;
+    return {
+      id: t.id,
+      name: t.name,
+      retired: t.retired,
+      memberIds: t.memberIds,
+      races: n,
+      wins,
+      winPct: n ? wins / n : null,
+      top3,
+      top3Pct: n ? top3 / n : null,
+      bestAvg: mean(best),
+      avgCombined: mean(combined),
+      memberWins,
+    };
+  });
+}
+
+/** Team filter value: all races, races without a team, or one team's id. */
+export type TeamFilter = "all" | "none" | string;
+
+export function filterByTeam<T extends { race: Race }>(rows: T[], filter: TeamFilter): T[] {
+  if (filter === "all") return rows;
+  if (filter === "none") return rows.filter((x) => !x.race.teamId);
+  return rows.filter((x) => x.race.teamId === filter);
 }
